@@ -136,6 +136,7 @@ class DataFromFile(Loadable):
     def get_data(self):
         raise NotImplementedError
 
+image_cache = {}
 
 class SpatialImage2D(DataFromFile):
     """
@@ -376,7 +377,11 @@ class SpatialImage2D(DataFromFile):
         if len(self._file_path) > 1:
             # 2D image from multiple files
             raise NotImplementedError
-        image_obj = load_image_from_file(self.file_path[0], self.loader[0])
+        if self.file_path[0] in image_cache.keys():
+            image_obj = image_cache[self.file_path[0]]
+        else:
+            image_obj = load_image_from_file(self.file_path[0], self.loader[0])
+            image_cache[self.file_path[0]] = image_obj
         image_data = image_obj.get_data()
         image_data = misc.expand_to_5d(image_data)
         return image_data
@@ -473,7 +478,11 @@ class SpatialImage3D(SpatialImage2D):
                 raise
             return image_data
         # assuming len(self._file_path) == 1
-        image_obj = load_image_from_file(self.file_path[0], self.loader[0])
+        if self.file_path[0] in image_cache.keys():
+            image_obj = image_cache[self.file_path[0]]
+        else:
+            image_obj = load_image_from_file(self.file_path[0], self.loader[0])
+            image_cache[self.file_path[0]] = image_obj
         image_data = image_obj.get_data()
         image_data = misc.expand_to_5d(image_data)
         if self.original_axcodes[0] and self.output_axcodes[0]:
@@ -568,7 +577,11 @@ class SpatialImage5D(SpatialImage3D):
             # 5D image from multiple 4d files
             raise NotImplementedError
         # assuming len(self._file_path) == 1
-        image_obj = load_image_from_file(self.file_path[idx], self.loader[idx])
+        if self.file_path[idx] in image_cache.keys():
+            image_obj = image_cache[self.file_path[idx]]
+        else:
+            image_obj = load_image_from_file(self.file_path[idx], self.loader[idx])
+            image_cache[self.file_path[idx]] = image_obj
         image_data = image_obj.get_data()
         image_data = misc.expand_to_5d(image_data)
         assert image_data.shape[3] == 1, "time sequences not supported"
